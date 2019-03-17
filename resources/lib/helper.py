@@ -51,7 +51,7 @@ def get_first_youtube_video(query):
 
 def get_youtube_listing(searchquery, limit=None):
     """get items from youtube plugin by query"""
-    lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s&search_type=video" % searchquery
+    lib_path = u"plugin://plugin.video.youtube/kodion/search/query/?q=%s&search_type=videos" % searchquery
     files_query = json_call('Files.GetDirectory',
                               params={'directory': lib_path},
                               limit=limit)
