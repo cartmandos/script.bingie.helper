@@ -55,11 +55,12 @@ def get_youtube_listing(searchquery, limit=None):
     files_query = json_call('Files.GetDirectory',
                               params={'directory': lib_path},
                               limit=limit)
+    result = []
     if 'result' in files_query:
         for key, value in files_query['result'].iteritems():
             if not key == "limits" and (isinstance(value, list) or isinstance(value, dict)):
-                return value
-    return None
+                result = value
+    return result
 
 def json_call(method,properties=None,sort=None,query_filter=None,limit=None,params=None,item=None):
 
