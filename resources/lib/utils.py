@@ -60,6 +60,7 @@ def togglemylist(params):
             # NEW_TAG not in list - let's add it
             else:
                 item_tags.append(NEW_TAG)
+                xbmcgui.Window(10000).setProperty("IsInMyList", item_id)
 
             # prepare set tag query
             json_query = {'jsonrpc': '2.0', 'id': 'TagMyList',
