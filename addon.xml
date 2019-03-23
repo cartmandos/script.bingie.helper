@@ -8,12 +8,12 @@
 	<extension point="xbmc.addon.metadata">
 		<language/>
 		<summary lang="en">BINGIE Helper Script</summary>
-		<description lang="en">Script Helper for some of BINGIE features</description>
+		<description lang="en">Helper for some of BINGIE features</description>
 		<platform>all</platform>
-		<license></license>
-		<forum></forum>
-		<source></source>
-		<email></email>
+		<license>GPL v3.0</license>
+		<forum>https://forum.kodi.tv/showthread.php?tid=334820</forum>
+		<website></website>
+		<source>https://github.com/cartmandos/script.bingie.helper/</source>
 		<assets>
 			<icon>resources/icon.png</icon>
 			<fanart>resources/fanart.jpg</fanart>
