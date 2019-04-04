@@ -90,7 +90,7 @@ def playtrailer(params):
             folder_name = xbmc.getInfoLabel(
                 'Container({}).ListItem().FolderName'.format(xbmc.getInfoLabel('%s' % item_control_id)))
             if item_path:
-                dirs, files = xbmcvfs.listdir(item_path)
+                files = xbmcvfs.listdir(item_path)[1]
                 for filename in files:
                     folder_name_trailer = folder_name.lower() + "-trailer"
                     file_name_noext = os.path.splitext(filename)[0].lower()

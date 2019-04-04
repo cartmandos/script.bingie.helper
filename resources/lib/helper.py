@@ -3,7 +3,6 @@
 
 import xbmc
 import xbmcaddon
-import xbmcgui
 import simplejson
 
 ADDON = xbmcaddon.Addon()
@@ -103,8 +102,7 @@ def json_call(method,properties=None,sort=None,query_filter=None,limit=None,para
 
     result = xbmc.executeJSONRPC(json_string)
 
-    ''' Python 2 compatibility
-    '''
+    # Python 2 compatibility
     try:
         result = unicode(result, 'utf-8', errors='ignore')
     except NameError:
