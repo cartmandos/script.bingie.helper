@@ -22,8 +22,7 @@ def get_kodiversion():
 def log(txt,loglevel=NOTICE,force=False):
     if ((loglevel == NOTICE or loglevel == WARNING) and LOG_ENABLED) or (loglevel == DEBUG and DEBUGLOG_ENABLED) or force:
 
-        ''' Python 2 requires to decode stuff at first
-        '''
+        # Python 2 requires to decode stuff at first
         try:
             if isinstance(txt, str):
                 txt = txt.decode('utf-8')
