@@ -17,12 +17,10 @@ DEBUGLOG_ENABLED = True if ADDON.getSetting('debuglog') == 'true' else False
 
 
 def get_kodiversion():
-
     build = xbmc.getInfoLabel('System.BuildVersion')
     return int(build[:2])
 
 def log(txt,loglevel=NOTICE,force=False):
-
     if ((loglevel == NOTICE or loglevel == WARNING) and LOG_ENABLED) or (loglevel == DEBUG and DEBUGLOG_ENABLED) or force:
 
         ''' Python 2 requires to decode stuff at first
@@ -42,6 +40,23 @@ def log(txt,loglevel=NOTICE,force=False):
 
 def visible(condition):
     return xbmc.getCondVisibility(condition)
+
+def get_idandtype():
+    # gets item DBID and DBType (str)
+    item_id = xbmc.getInfoLabel('ListItem.DBID')
+    item_type = xbmc.getInfoLabel('ListItem.DBType')
+    return item_id, item_type
+
+def get_tags(item_id, item_type):
+    if item_id and item_type:
+        item_tags = json_call('VideoLibrary.Get' + item_type + 'Details',
+                              properties=['tag'],
+                              params={item_type + 'id': int(item_id)})
+        if 'result' in item_tags:
+            # extract tags to list
+            item_tags = item_tags['result'][item_type + 'details']['tag']
+            return item_tags
+    return None
 
 def get_first_youtube_video(query):
     for media in get_youtube_listing('%s' % query, limit=5):

@@ -1,98 +1,54 @@
 #!/usr/bin/python
 # coding: utf8
 
-import xbmc
-import xbmcgui
-import xbmcvfs
+import xbmcvfs, xbmcgui, xbmc
 import os
-import simplejson as json
 from resources.lib.helper import *
 
 RESET_VALUE = '0'
 THUMBSUP_VALUE_SETTING_ID = 'ThumbsUpRateValue'
 THUMBSDOWN_VALUE_SETTING_ID = 'ThumbsDownRateValue'
 NEW_TAG = 'mylist'
+WIN = xbmcgui.Window(10000)
 
 
 def ismylist(params):
-    # gets item DBID and DBType (str)
-    item_id = xbmc.getInfoLabel('ListItem.DBID')
-    item_type = xbmc.getInfoLabel('ListItem.DBType')
-
-    if item_id and item_type:
-        # prepare get tag query
-        item_tags = {'jsonrpc': '2.0', 'id': 'IsInMyList',
-                    'method': 'VideoLibrary.Get' + item_type + 'Details',
-                    'params': {item_type + 'id': int(item_id),
-                               'properties': ['tag']}}
-        # get item tags
-        item_tags = json.loads(xbmc.executeJSONRPC(json.dumps(item_tags)))
-        if 'result' in item_tags:
-            # extract tags to list
-            item_tags = item_tags['result'][item_type + 'details']['tag']
-
-            # if in my list -> set window property
-            if NEW_TAG in item_tags:
-                xbmcgui.Window(10000).setProperty("IsInMyList", item_id)
+    item_id, item_type = get_idandtype()
+    item_tags = get_tags(item_id, item_type)
+    if item_tags:
+        # if in my list -> set window property
+        if NEW_TAG in item_tags:
+            WIN.setProperty("IsInMyList", item_id)
 
 
 def togglemylist(params):
-    # gets item DBID and DBType (str)
-    item_id = xbmc.getInfoLabel('ListItem.DBID')
-    item_type = xbmc.getInfoLabel('ListItem.DBType')
-
-    if item_id and item_type:
-        # prepare get tag query
-        item_tags = {'jsonrpc': '2.0', 'id': 'TagMyList',
-                    'method': 'VideoLibrary.Get' + item_type + 'Details',
-                    'params': {item_type + 'id': int(item_id),
-                               'properties': ['tag']}}
-        # get item tags
-        item_tags = json.loads(xbmc.executeJSONRPC(json.dumps(item_tags)))
-        if 'result' in item_tags:
-            # extract tags to list
-            item_tags = item_tags['result'][item_type + 'details']['tag']
-
-            # remove NEW_TAG
-            if NEW_TAG in item_tags:
-                item_tags.remove(NEW_TAG)
-
-            # NEW_TAG not in list - let's add it
-            else:
-                item_tags.append(NEW_TAG)
-                xbmcgui.Window(10000).setProperty("IsInMyList", item_id)
-
-            # prepare set tag query
-            json_query = {'jsonrpc': '2.0', 'id': 'TagMyList',
-                         'method': 'VideoLibrary.Set' + item_type + 'Details',
-                         'params': {item_type + 'id': int(item_id),
-                                    'tag': item_tags}}
-            # submit json query
-            xbmc.executeJSONRPC(json.dumps(json_query))
-
+    item_id, item_type = get_idandtype()
+    item_tags = get_tags(item_id, item_type)
+    if item_tags:
+        # remove NEW_TAG
+        if NEW_TAG in item_tags:
+            item_tags.remove(NEW_TAG)
+        # NEW_TAG not in list - let's add it
+        else:
+            item_tags.append(NEW_TAG)
+            WIN.setProperty("IsInMyList", item_id)
+        json_call('VideoLibrary.Set' + item_type + 'Details',
+                  params={item_type + 'id': int(item_id),
+                          'tag': item_tags})
 
 def ratetitle(params):
     action = params.get("rateaction")
     action_dict = {'like': xbmc.getInfoLabel("Skin.String(%s)" % THUMBSUP_VALUE_SETTING_ID),
                    'dislike': xbmc.getInfoLabel("Skin.String(%s)" % THUMBSDOWN_VALUE_SETTING_ID),
                    'reset': RESET_VALUE}
-
-    if action in action_dict:
-        # gets item DBID and DBType (str)
-        item_id = xbmc.getInfoLabel('ListItem.DBID')
-        item_type = xbmc.getInfoLabel('ListItem.DBType')
-
+    if action in action_dict and int(action_dict[action]) >= 0:
+        item_id, item_type = get_idandtype()
         if item_id and item_type:
-            # prepare json query
-            json_query = {'jsonrpc': '2.0', 'id': 'RateTitle',
-                         'method': 'VideoLibrary.Set' + item_type + 'Details',
-                         'params': {item_type + 'id': int(item_id),
-                                    'userrating': int(action_dict[action])}}
-
-            # submit json query
-            xbmc.executeJSONRPC(json.dumps(json_query))
-            xbmcgui.Window(10000).setProperty("RateTitle", item_id)
-            xbmcgui.Window(10000).setProperty("RateTitle.Action", action)
+            json_call('VideoLibrary.Set' + item_type + 'Details',
+                      params={item_type + 'id': int(item_id),
+                              'userrating': int(action_dict[action])})
+            WIN.setProperty("RateTitle", item_id)
+            WIN.setProperty("RateTitle.Action", action)
 
 def gettvshowid(params):
     """extracts tvshowid from kodidb"""
@@ -102,7 +58,7 @@ def gettvshowid(params):
     try:
         tvshow_id = str(episode_query['result']['episodedetails']['tvshowid'])
         output = params.get("output", "ListItem.TVShowID")
-        xbmcgui.Window(10000).setProperty(output, tvshow_id)
+        WIN.setProperty(output, tvshow_id)
     except Exception:
         log('Could not get the TV show ID')
         return
@@ -150,7 +106,7 @@ def playtrailer(params):
                 tvshow_str = " tv show"
             li_trailer = get_first_youtube_video("%s%s%s trailer" % (title, tvshow_str, local_language))
 
-        xbmcgui.Window(10000).setProperty("traileractionbusy", "traileractionbusy")
+        WIN.setProperty("traileractionbusy", "traileractionbusy")
         if li_trailer and not visible("Container.Scrolling | Container.OnNext "
                                                 "| Container.OnPrevious | Player.HasVideo") \
                 and list_item_title == xbmc.getInfoLabel("ListItem.Title"):
@@ -158,5 +114,5 @@ def playtrailer(params):
                 xbmc.executebuiltin('PlayMedia("%s")' % li_trailer)
             else:
                 xbmc.executebuiltin('PlayMedia("%s",1)' % li_trailer)
-            xbmcgui.Window(10000).setProperty("TrailerPlaying", trailer_mode)
-        xbmcgui.Window(10000).clearProperty("traileractionbusy")
+            WIN.setProperty("TrailerPlaying", trailer_mode)
+        WIN.clearProperty("traileractionbusy")
